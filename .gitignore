@@ -1,0 +1,33 @@
+# Raw competition data
+/data/
+*.csv
+
+# Original working notebooks and local experiment copies
+/*.ipynb
+/notebooks/.ipynb_checkpoints/
+!/notebooks/**/*.ipynb
+
+# Local notebook/runtime artifacts
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Root-level original evidence files are copied into assets/
+/decision_tree
+/Source.gv
+/decision_tree_high_res.png
+/output.png
+/LG AI_수료증.pdf
+/팀IBA_6_2_lg_aimers_5기_온라인해커톤_발표자료.pptx
+
+# Local environments
+.venv/
+venv/
+env/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
