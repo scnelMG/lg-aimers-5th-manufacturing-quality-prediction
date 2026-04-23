@@ -31,16 +31,16 @@
 이 프로젝트의 핵심은 "모델 하나를 학습하는 것"보다 제조 공정 데이터의 구조를 정리하고, 이상 탐지에 필요한 피처와 검증 방식을 만드는 것이었습니다.
 
 ```mermaid
-flowchart LR
-    A["원본 공정 데이터<br/>train/test/submission"] --> B["데이터 구조 확인<br/>행/열, 타깃 비율, 공정별 컬럼"]
-    B --> C["전처리<br/>결측·상수·중복 컬럼 제거"]
-    C --> D["피처 엔지니어링<br/>상관관계 분석, SUM/DELTA 생성"]
-    D --> E["인코딩<br/>LabelEncoder, OneHotEncoder"]
-    E --> F["검증 설계<br/>Stratified K-Fold, F1 기준"]
-    F --> G["모델 실험<br/>RF, XGBoost, LightGBM, CatBoost"]
-    G --> H["불균형 대응<br/>언더샘플링, RandomOverSampler"]
-    H --> I["후처리<br/>임계값 탐색 및 라벨 변환"]
-    I --> J["제출 파일 생성<br/>Normal / AbNormal"]
+flowchart TB
+    A["1. 원본 데이터 입력<br/>train.csv, test.csv, submission.csv"]
+    B["2. 데이터 점검<br/>행/열 구조, 타깃 비율, 공정별 컬럼 확인"]
+    C["3. 전처리<br/>결측 컬럼, 상수 컬럼, 중복성 높은 컬럼 제거"]
+    D["4. 피처 엔지니어링<br/>상관관계 분석 후 SUM/DELTA 파생변수 생성"]
+    E["5. 모델링 및 검증<br/>Stratified K-Fold 기반 트리 모델 비교"]
+    F["6. 불균형 대응<br/>언더샘플링, 오버샘플링, F1 임계값 탐색"]
+    G["7. 제출 파일 생성<br/>Normal / AbNormal 라벨 변환"]
+
+    A --> B --> C --> D --> E --> F --> G
 ```
 
 ## 4. 핵심 구현
