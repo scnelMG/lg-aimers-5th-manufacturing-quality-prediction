@@ -21,6 +21,9 @@ __pycache__/
 /LG AI_수료증.pdf
 /팀IBA_6_2_lg_aimers_5기_온라인해커톤_발표자료.pptx
 
+# Local-only restored working files
+/archive/
+
 # Local environments
 .venv/
 venv/
