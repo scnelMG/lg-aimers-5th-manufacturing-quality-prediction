@@ -1,16 +1,23 @@
-# 재현 방법
+# Reproducibility
 
-## 환경
+This repo supports inspection-first reproducibility. Full execution is available only to users who already have authorized access to the LG AImers 5th competition data.
 
-권장 Python 버전은 3.9 이상입니다. 대표 노트북은 Jupyter Notebook 또는 JupyterLab에서 실행할 수 있습니다.
+## Environment
+
+Recommended baseline:
+
+- Python 3.9 or newer
+- Jupyter Notebook or JupyterLab
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 데이터 배치
+## Data Placement
 
-원본 데이터는 저장소에 포함하지 않습니다. 노트북을 실행하려면 대회에서 제공된 데이터를 아래 경로에 직접 배치해야 합니다.
+The raw competition CSV files are intentionally excluded from git. To run the notebook locally, place the official files here:
 
 ```text
 data/
@@ -19,16 +26,51 @@ data/
   submission.csv
 ```
 
-## 실행 순서
+Do not commit the `data/` directory or generated submission files.
 
-1. 의존성 설치
-2. `data/` 디렉터리에 원본 CSV 배치
-3. `notebooks/final_modeling.ipynb` 실행
-4. 전처리, 모델 학습, 검증, 예측 순서로 셀 실행
-5. 제출 파일 생성 셀에서 `submission.csv` 템플릿에 예측 결과 저장
+## Run Order
 
-## 주의 사항
+1. Install dependencies from `requirements.txt`.
+2. Place authorized competition CSVs under `data/`.
+3. Open [`../notebooks/final_modeling.ipynb`](../notebooks/final_modeling.ipynb).
+4. Run the import and data-audit cells.
+5. Run preprocessing and feature engineering cells.
+6. Run validation cells and inspect F1, precision, recall, and accuracy.
+7. Run submission-generation cells only in a local ignored output path.
 
-- 원본 데이터와 제출 CSV는 `.gitignore`로 제외되어 있습니다.
-- 일부 실험 노트북은 Colab 환경에서 작성된 셀이나 추가 패키지 설치 셀을 포함할 수 있습니다.
-- 검증 점수와 최종 제출 점수는 실행 환경, 라이브러리 버전, 샘플링 랜덤 시드에 따라 달라질 수 있습니다.
+## What Can Be Reproduced Publicly
+
+Without private competition data, public reviewers can still inspect:
+
+- Notebook source and stored outputs.
+- Data cleaning decisions.
+- Feature engineering logic.
+- Imbalance handling experiments.
+- Stratified validation design.
+- Model candidates and dependency list.
+
+## What Cannot Be Reproduced Publicly
+
+Public reproduction is blocked for:
+
+- Training on the original competition rows.
+- Recreating final submission CSV files.
+- Verifying a private leaderboard score or rank.
+- Redistributing raw data, Drive archives, certificates with personal identifiers, or private team materials.
+
+## Verification Notes
+
+Expected public checks:
+
+- `git status --short` to confirm the local worktree state.
+- README keyword scan for metric, validation, feature, imbalance, limitations, data, reproduce, role, and evidence coverage.
+- Recursive filename and file-size risk scan excluding `.git`.
+- Credential-pattern scan excluding `.git`.
+- `git diff` capture for documentation review.
+
+## Limitations
+
+- Dependency versions in notebooks may reflect the original competition environment.
+- Sampling and validation results can vary with random seeds and library versions.
+- Stored notebook outputs are evidence of prior runs, not a substitute for authorized reruns.
+- This repo does not include production monitoring, drift detection, or a manufacturing-line deployment workflow.

@@ -1,88 +1,124 @@
-# LG Aimers 5기 온라인 해커톤 - 제조 품질 이상 탐지
+# LG AImers 5th Manufacturing Quality Prediction
 
-제조 공정 데이터를 활용해 제품의 정상/이상 여부를 예측한 이진 분류 프로젝트입니다. 약 4만 건의 학습 데이터와 460개 이상의 공정 피처를 바탕으로 `Normal` / `AbNormal`을 분류하고, 클래스 불균형 상황에서 F1 성능을 개선하는 데 초점을 맞췄습니다.
+Machine-learning competition portfolio repo for predicting `Normal` vs `AbNormal` manufacturing quality from high-dimensional process data.
 
-## 1. 프로젝트 개요
+## Overview
 
-- 기간: 2024.08
-- 주제: 제조 공정 데이터 기반 제품 이상 여부 예측
-- 문제 유형: 이진 분류
-- 타깃: `Normal`, `AbNormal`
-- 역할: 팀 프로젝트 내 데이터 전처리, 피처 엔지니어링, 모델 실험 및 제출 파이프라인 구축
-- 목표: 고차원 제조 공정 데이터를 정제하고, 불균형 분류 상황에서 이상 제품을 효과적으로 탐지하는 모델 구현
-- 결과물: 전처리 파이프라인, 상관관계 기반 피처 정리, 파생변수 생성, 트리 기반 모델 비교, 샘플링/임계값 조정 실험, 최종 제출 노트북
+This project was built for the LG AImers 5th online hackathon. The practical problem is early detection of abnormal manufacturing outcomes from process, equipment, inspection, and work-order signals. The repository focuses on the modeling work that can be inspected publicly: data cleaning logic, feature engineering experiments, validation design, imbalance handling, tree-model comparison, and submission-file generation.
 
-## 2. 문제 정의
+The original competition data is not included. Reviewers can inspect the notebooks and docs, then reproduce the pipeline only after placing the official competition CSV files in the expected local `data/` directory.
 
-초기 데이터는 공정별 검사값, 설비 정보, 작업 정보, 판정값이 넓은 테이블 형태로 구성되어 있었습니다. 단순히 모든 컬럼을 모델에 넣으면 결측치가 많거나 거의 동일한 정보를 담은 피처가 많아 모델이 불필요한 노이즈를 학습할 가능성이 컸습니다.
+## Role
 
-또한 타깃은 `Normal`이 대부분이고 `AbNormal`은 적은 불균형 구조였습니다. 따라서 단순 정확도보다 이상 클래스 탐지 성능을 높이는 방향이 중요했습니다.
+My contribution in this public repo centers on the ML pipeline:
 
-이 프로젝트에서는 문제를 다음처럼 정리했습니다.
+- Cleaned high-dimensional manufacturing tables by removing fully missing columns, constant columns, duplicate/noisy judgment columns, and fields that were not useful for training.
+- Built process-aware feature engineering experiments, including correlation-group reduction and derived `SUM` / `DELTA` features for repeated or near-duplicate process measurements.
+- Compared tree-based models under a stratified validation setup.
+- Tested imbalance strategies for the minority `AbNormal` class, including undersampling, `RandomOverSampler`, and F1-oriented threshold review.
+- Organized the final notebook, experiment notes, reproducibility guidance, and public-safe data policy for portfolio inspection.
 
-1. 공정 데이터에서 결측/상수/중복성 높은 컬럼을 제거한다.
-2. 공정별 반복 피처와 강한 상관관계를 가진 피처 그룹을 분석한다.
-3. 유사 피처를 `SUM`, `DELTA` 파생변수로 요약한다.
-4. 불균형 데이터를 고려해 샘플링과 F1 기반 임계값을 조정한다.
-5. 여러 트리 기반 모델을 비교해 최종 제출 결과를 생성한다.
+## Problem
 
-## 3. 예측 파이프라인
+The target is binary classification:
 
-이 프로젝트의 핵심은 "모델 하나를 학습하는 것"보다 제조 공정 데이터의 구조를 정리하고, 이상 탐지에 필요한 피처와 검증 방식을 만드는 것이었습니다.
+- `Normal`: product/process instance treated as normal.
+- `AbNormal`: product/process instance treated as abnormal.
+
+The challenge is not only model selection. The input table has more than 460 process features and roughly 40,000 training rows, with many missing, constant, duplicated, categorical, or strongly correlated columns. The `AbNormal` class is much smaller than the `Normal` class, so accuracy alone is not useful. The project therefore treats minority-class detection and F1 behavior as the central modeling concern.
+
+## Metric
+
+The working metric in this repo is F1 for the abnormal-class detection task. The notebooks also record precision, recall, and accuracy during validation so the tradeoff is visible:
+
+- Higher recall can catch more abnormal cases but may create more false positives.
+- Higher precision can reduce false alarms but may miss abnormal cases.
+- F1 gives one operating-point summary for comparing sampling and model choices.
+
+No public leaderboard rank or final private score is claimed in this README because the repo does not contain a safely publishable, independently verifiable leaderboard artifact.
+
+## Approach
 
 ```mermaid
 flowchart TB
-    A["1. 원본 데이터 입력<br/>train.csv, test.csv, submission.csv"]
-    B["2. 데이터 점검<br/>행/열 구조, 타깃 비율, 공정별 컬럼 확인"]
-    C["3. 전처리<br/>결측 컬럼, 상수 컬럼, 중복성 높은 컬럼 제거"]
-    D["4. 피처 엔지니어링<br/>상관관계 분석 후 SUM/DELTA 파생변수 생성"]
-    E["5. 모델링 및 검증<br/>Stratified K-Fold 기반 트리 모델 비교"]
-    F["6. 불균형 대응<br/>언더샘플링, 오버샘플링, F1 임계값 탐색"]
-    G["7. 제출 파일 생성<br/>Normal / AbNormal 라벨 변환"]
+    A["Official competition CSVs<br/>train.csv, test.csv, submission.csv"]
+    B["Data audit<br/>shape, target ratio, column groups"]
+    C["Preprocessing<br/>missing, constant, duplicate, judgment columns"]
+    D["Feature engineering<br/>categorical encoding, correlation groups, SUM/DELTA features"]
+    E["Validation<br/>Stratified K-Fold, F1/precision/recall/accuracy"]
+    F["Imbalance handling<br/>undersampling, RandomOverSampler, threshold review"]
+    G["Model comparison<br/>RandomForest, XGBoost, LightGBM, CatBoost"]
+    H["Submission generation<br/>Normal / AbNormal labels"]
 
-    A --> B --> C --> D --> E --> F --> G
+    A --> B --> C --> D --> E --> F --> G --> H
 ```
 
-## 4. 핵심 구현
+## Technical Decisions
 
-### 데이터 전처리
+### Data cleaning
 
-- 전체 값이 결측인 컬럼 제거
-- 단일 값만 가지는 컬럼 제거
-- `OK` 등 판정값이 섞여 정보량이 낮거나 중복성이 큰 컬럼 정리
-- 테스트 데이터의 `Set ID`와 제출용 `target` 컬럼을 분리해 학습 피처와 제출 포맷을 관리
+- Removed columns that are entirely missing.
+- Removed columns with a single observed value.
+- Removed noisy or redundant judgment columns where the value pattern did not add predictive signal.
+- Kept `Set ID` and target/submission handling separate from training features.
+- Encoded categorical process fields before model training.
 
-### 상관관계 기반 피처 엔지니어링
+### Feature engineering
 
-공정 데이터에는 유사한 센서값이나 반복 측정값이 많았습니다. 대표 노트북에서는 상관계수 1.0 또는 0.99 이상인 피처 그룹을 탐색하고, 단순 삭제뿐 아니라 의미가 있는 경우 다음 방식으로 파생변수를 만들었습니다.
+Manufacturing datasets often contain repeated measurements, paired equipment readings, and near-duplicate process fields. The experiment notebooks inspect high-correlation feature groups and derive compact signals:
 
-- `SUM`: 유사 공정 또는 반복 측정값을 합산해 전체 수준을 표현
-- `DELTA`: 공정 간 차이나 위치 차이를 반영해 이상 패턴을 포착
+- `SUM`: combines related repeated measurements to represent total process intensity.
+- `DELTA`: captures difference patterns that may expose abnormal variation between similar process readings.
 
-### 모델링
+This keeps the feature work tied to the process structure instead of only passing a wide raw table into a model.
 
-트리 기반 모델을 중심으로 여러 후보를 비교했습니다.
+### Validation
+
+The notebook uses `StratifiedKFold` so each fold keeps a similar `Normal` / `AbNormal` ratio. This matters because the abnormal class is sparse, and random folds can otherwise produce unstable minority-class estimates.
+
+Validation reports include F1, precision, recall, and accuracy. The README intentionally treats those as local experiment evidence, not as a final competition score guarantee.
+
+### Imbalance Handling
+
+The repo documents three imbalance strategies:
+
+- Baseline training on the cleaned feature table.
+- Undersampling normal-class rows at several ratios.
+- `RandomOverSampler` for the minority class.
+
+The comparison focuses on F1 and the precision/recall tradeoff instead of optimizing for accuracy.
+
+### Final Model Approach
+
+The main candidate family is tree-based classification:
 
 - RandomForest
 - XGBoost
 - LightGBM
 - CatBoost
 
-검증은 클래스 비율을 유지하기 위해 Stratified K-Fold를 사용했고, 최종 예측에서는 F1 점수를 기준으로 임계값 조정을 실험했습니다.
+The final notebook emphasizes CatBoost and related tree models because they are strong tabular baselines for mixed numeric/categorical manufacturing features and are practical for rapid competition iteration. The final public artifact is the modeling pipeline and experiment history, not a claim that one model universally dominates outside the competition setting.
 
-### 불균형 대응
+## Evidence and Results
 
-이상 클래스가 적은 문제였기 때문에 단순 학습만으로는 `AbNormal` 탐지가 약해질 수 있었습니다. 이를 보완하기 위해 다음 전략을 실험했습니다.
+Inspectable evidence in this repo:
 
-- Normal/AbNormal 비율을 조정하는 언더샘플링
-- RandomOverSampler 기반 오버샘플링
-- 후보 임계값별 F1 점수 비교
+- Main pipeline: [`notebooks/final_modeling.ipynb`](notebooks/final_modeling.ipynb)
+- Experiment summary: [`docs/experiment_summary.md`](docs/experiment_summary.md)
+- Reproduction boundary: [`docs/reproducibility.md`](docs/reproducibility.md)
+- Supporting experiment notebooks:
+  - [`notebooks/experiments/latest_score_experiment.ipynb`](notebooks/experiments/latest_score_experiment.ipynb)
+  - [`notebooks/experiments/feature_importance_experiment.ipynb`](notebooks/experiments/feature_importance_experiment.ipynb)
+  - [`notebooks/experiments/process_analysis_experiment.ipynb`](notebooks/experiments/process_analysis_experiment.ipynb)
+- Presentation artifact: [`assets/presentation_lg_aimers_5th_online_hackathon.pptx`](assets/presentation_lg_aimers_5th_online_hackathon.pptx)
 
-## 5. 데이터 처리 및 공개 범위
+The notebook output includes local validation tables for sampling/model experiments. Because the raw competition data and final submitted CSVs are excluded, this public repo should be reviewed as an inspection-first portfolio artifact unless the reviewer has legitimate access to the competition files.
 
-원본 데이터는 LG Aimers 온라인 해커톤에서 제공된 대회 데이터입니다. 데이터 공개 범위와 라이선스를 고려해 저장소에는 원본 `train.csv`, `test.csv`, `submission.csv` 및 제출용 CSV 파일을 포함하지 않았습니다.
+## Data and Public Safety
 
-노트북 실행 시에는 아래 구조로 원본 데이터를 별도 배치해야 합니다.
+The official LG AImers competition data is excluded from this repository.
+
+Expected local layout for authorized reproduction:
 
 ```text
 data/
@@ -91,64 +127,71 @@ data/
   submission.csv
 ```
 
-대표 노트북에서 확인한 데이터 구조는 다음과 같습니다.
+Excluded from public publication:
 
-- 학습 데이터: 약 40,506행, 464개 컬럼
-- 테스트 데이터: 약 17,361행, `Set ID`와 제출용 `target` 컬럼 포함
-- 주요 피처: 공정별 설비 정보, 검사 결과, 좌표/속도/압력/생산량 관련 수치형 피처, 범주형 공정 정보
+- Raw `train.csv`, `test.csv`, and `submission.csv`.
+- Generated submission CSV files.
+- Any Drive-only final materials that include private, teammate, certificate, or redistribution-sensitive information.
+- Certificate files unless the user explicitly decides they are safe to publish.
 
-## 6. 주요 산출물
+The existing `assets/lg_ai_certificate.pdf` is treated as a publication-review blocker, not as evidence that should be highlighted for public reviewers.
 
-- 대표 노트북: [`notebooks/final_modeling.ipynb`](notebooks/final_modeling.ipynb)
-- 실험 요약: [`docs/experiment_summary.md`](docs/experiment_summary.md)
-- 재현 방법: [`docs/reproducibility.md`](docs/reproducibility.md)
-- 발표 자료: [`assets/presentation_lg_aimers_5th_online_hackathon.pptx`](assets/presentation_lg_aimers_5th_online_hackathon.pptx)
-- 수료 증빙: [`assets/lg_ai_certificate.pdf`](assets/lg_ai_certificate.pdf)
+## Reproduce
 
-## 7. 저장소 구성
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run path for authorized users:
+
+1. Place official competition CSVs under `data/`.
+2. Open [`notebooks/final_modeling.ipynb`](notebooks/final_modeling.ipynb).
+3. Run preprocessing cells before model training cells.
+4. Review validation outputs for F1, precision, recall, and accuracy.
+5. Generate a submission file only in a local ignored path.
+
+Without the competition data, reviewers can still inspect the code, feature logic, validation design, experiment notebooks, and public-safe docs.
+
+## Repository Structure
 
 ```text
 .
-├── README.md
-├── requirements.txt
-├── docs/
-│   ├── experiment_summary.md
-│   └── reproducibility.md
-├── notebooks/
-│   ├── final_modeling.ipynb
-│   └── experiments/
-│       ├── latest_score_experiment.ipynb
-│       ├── feature_importance_experiment.ipynb
-│       └── process_analysis_experiment.ipynb
-└── assets/
-    ├── decision_tree_high_res.png
-    ├── model_output.png
-    ├── presentation_lg_aimers_5th_online_hackathon.pptx
-    └── lg_ai_certificate.pdf
+|-- README.md
+|-- requirements.txt
+|-- docs/
+|   |-- experiment_summary.md
+|   `-- reproducibility.md
+|-- notebooks/
+|   |-- final_modeling.ipynb
+|   `-- experiments/
+|       |-- latest_score_experiment.ipynb
+|       |-- feature_importance_experiment.ipynb
+|       `-- process_analysis_experiment.ipynb
+`-- assets/
+    |-- decision_tree_high_res.png
+    |-- model_output.png
+    |-- presentation_lg_aimers_5th_online_hackathon.pptx
+    `-- lg_ai_certificate.pdf
 ```
 
-## 8. 한계와 배운 점
-
-가장 큰 한계는 대회 데이터 특성상 최종 평가 기준과 테스트 라벨을 직접 확인할 수 없다는 점이었습니다. 따라서 로컬 검증 점수와 실제 제출 성능 사이에 차이가 날 수 있고, 검증 설계를 얼마나 안정적으로 가져가는지가 중요했습니다.
-
-또한 제조 공정 데이터에서는 컬럼 수가 많다는 사실 자체보다 "비슷한 의미를 가진 피처가 반복적으로 존재한다"는 점이 더 큰 문제였습니다. 이 경험을 통해 모델 성능 개선은 알고리즘 선택만으로 해결되지 않으며, 도메인 구조를 반영한 피처 정리와 검증 기준 설계가 함께 필요하다는 점을 배웠습니다.
-
-## 9. 실행 환경
-
-노트북은 프로젝트 수행 당시의 실험 흐름을 보존한 자료입니다. 원본 데이터와 제출 파일은 공개 저장소에서 제외되어 있으므로, 전체 재실행을 위해서는 대회 제공 데이터를 별도로 준비해야 합니다.
-
-주요 라이브러리는 다음과 같습니다.
+## Tech Stack
 
 - Python
 - pandas, numpy
 - scikit-learn
 - imbalanced-learn
-- xgboost, lightgbm, catboost
+- XGBoost, LightGBM, CatBoost
 - matplotlib, seaborn
 - optuna, shap
+- Jupyter
 
-설치 예시는 다음과 같습니다.
+## Limitations
 
-```bash
-pip install -r requirements.txt
-```
+- Full reproduction is blocked for public reviewers because the raw competition data is not redistributed.
+- Local validation F1 can differ from competition scoring because fold design, sampling randomness, library versions, and hidden test distribution all matter.
+- The public repo does not claim a verified leaderboard rank or final score.
+- Notebook outputs may contain Colab-rendered JavaScript bundles; these should be treated as notebook-rendering artifacts unless a credential scan proves otherwise.
+- The certificate PDF should be reviewed before public publication because certificates can contain personal identifiers.
+- The modeling approach is competition-oriented and should not be treated as a deployed manufacturing-quality monitoring system without fresh data validation, drift checks, monitoring, and domain review.
