@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="assets/model_output.png" alt="제조 품질 이상 탐지 실제 모델 결과" width="720" />
+</p>
+
 # LG AImers 5기 - 제조 품질 이상 탐지
+
+<p align="center">LG AImers 5기 · 제조 데이터 · 이상 탐지 · 머신러닝</p>
 
 > 고차원 제조 공정 데이터에서 `Normal` / `AbNormal`을 예측하는 tabular ML 경진대회 프로젝트입니다.
 
