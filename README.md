@@ -1,99 +1,113 @@
 <p align="center">
-  <img src="assets/model_output.png" alt="제조 품질 이상 탐지 실제 모델 결과" width="720" />
+  <img src="assets/model_output.png" alt="실제 Decision Tree 시각화" width="720" />
 </p>
 
-# LG AImers 5기 - 제조 품질 이상 탐지
+# LG AImers 5기 | 제조 품질 이상 탐지
 
-<p align="center">LG AImers 5기 · 제조 데이터 · 이상 탐지 · 머신러닝</p>
+<p align="center">고차원 제조 공정 데이터에서 <code>AbNormal</code>을 놓치지 않기 위한 불균형 분류 실험</p>
 
-> 고차원 제조 공정 데이터에서 `Normal` / `AbNormal`을 예측하는 tabular ML 경진대회 프로젝트입니다.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/CatBoost-FFD43B?logo=python&logoColor=black" alt="CatBoost" />
+  <img src="https://img.shields.io/badge/Scikit--learn-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn" />
+  <img src="https://img.shields.io/badge/Imbalanced--learn-7B68EE" alt="imbalanced-learn" />
+</p>
 
-[![Python](https://img.shields.io/badge/Python-ML%20Pipeline-3776AB?logo=python&logoColor=white)](requirements.txt)
-[![LightGBM](https://img.shields.io/badge/LightGBM-Tabular%20ML-02569B)](docs/experiment_summary.md)
-[![XGBoost](https://img.shields.io/badge/XGBoost-Imbalanced%20Classification-FF6600)](docs/reproducibility.md)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Competition%20ML-2ea44f)](README.md)
+## 프로젝트 한눈에 보기
 
-## 개요
-
-LG AImers 5기 온라인 해커톤에서 진행한 제조 품질 예측 프로젝트입니다. 공정, 장비, 검사, 작업 지시 관련 고차원 feature를 사용해 제조 결과가 정상인지 비정상인지 분류하는 문제를 다뤘습니다.
-
-이 저장소는 원본 대회 데이터를 포함하지 않고, 공개 가능한 notebook, 실험 요약, 재현 가이드, 데이터 공개 정책을 중심으로 정리한 포트폴리오 버전입니다.
-
-## 빠른 검토 경로
-
-| 먼저 볼 것 | 확인할 내용 |
+| 구분 | 내용 |
 | --- | --- |
-| [docs/experiment_summary.md](docs/experiment_summary.md) | 전처리, feature engineering, 모델 비교, threshold 검토 |
-| [docs/reproducibility.md](docs/reproducibility.md) | 대회 데이터 없이 확인 가능한 범위와 실행 조건 |
-| [notebooks/](notebooks/) | 원본 실험 흐름과 제출 파일 생성 과정 |
-| [requirements.txt](requirements.txt) | 분석 환경 구성 |
+| 프로젝트 | LG Aimers 5기 온라인 해커톤 (2024.08.01–08.30) |
+| 대회 | [LG Aimers 5기 온라인 해커톤](https://lgaimers5th.elice.io/explore) |
+| 문제 | 제조 공정·장비·검사 feature로 `Normal` / `AbNormal` 분류 |
+| 데이터 | Train 40,506행 · 464열 / Test 17,361행 |
+| 난점 | 소수 `AbNormal` class, 결측·상수·중복·`OK` 혼입 변수 |
+| 검증 기준 | 5-fold Stratified Cross Validation의 F1 score |
+| 결과 | Private score **0.229658** |
 
-## 문제 정의
+## 왜 이 문제를 풀었나
 
-입력 테이블은 460개 이상의 제조 공정 feature와 약 4만 개 row를 포함합니다. 결측, 상수 컬럼, 중복/유사 공정 변수, 범주형 feature, 강한 클래스 불균형이 함께 존재하기 때문에 단순 정확도보다 `AbNormal` class를 얼마나 안정적으로 잡는지가 중요했습니다.
+정확도만 높아도 드문 이상 상태를 놓치면 품질 관리에는 도움이 되지 않습니다. 그래서 노이즈성 공정 변수를 정리하고, 소수 class 비율을 보존한 검증과 샘플링 전략으로 `AbNormal` 탐지 성능을 비교했습니다.
 
-## 내 역할
+## 접근과 판단
 
-- 완전 결측, 상수, 중복/노이즈성 컬럼 제거
-- 반복 공정 feature에 대한 `SUM`, `DELTA`, correlation group 기반 feature engineering
-- Stratified validation 기반 tree model 비교
-- `AbNormal` 소수 class를 고려한 oversampling, undersampling, threshold 검토
-- 실험 요약과 공개 가능한 재현 문서 정리
-
-## 기술적 의사결정
-
-| 영역 | 선택 | 이유 |
+| 단계 | 구현 | 판단 기준 |
 | --- | --- | --- |
-| 모델군 | LightGBM, XGBoost, CatBoost | 고차원 tabular 데이터와 결측/범주형 feature 처리에 강합니다. |
-| 검증 | Stratified split | 소수 class 비율이 validation에 유지되도록 했습니다. |
-| 불균형 대응 | RandomOverSampler, class weight, threshold review | F1 중심의 trade-off를 보기 위한 구성입니다. |
-| feature engineering | 상수/결측 제거, correlation group, 파생 feature | 노이즈가 많은 제조 feature에서 학습 안정성을 높이기 위한 선택입니다. |
+| 데이터 정리 | 완전 결측·상수·중복·오염 컬럼 제거 | 학습에 기여하지 않는 공정 변수를 먼저 축소 |
+| feature engineering | 상관관계 공정 그룹의 `SUM`·`DELTA` 파생 변수 | 반복 공정 값의 관계를 보존 |
+| 검증 | 5-fold Stratified CV | 각 fold의 class 비율을 유지해 F1 비교 |
+| 불균형 대응 | Random over/under sampling | 소수 class 재현율과 F1의 trade-off 확인 |
+| 최종 예측 | CatBoost·RandomForest 가중 블렌딩, threshold 탐색 | 단일 모델보다 안정적인 F1 확보 |
 
-## 파이프라인
+Notion 실험 기록 기준으로 완전 결측 278개, 상수 35개, 중복 26개 컬럼을 우선 제거했습니다. 이후 0.99 이상 상관관계 쌍 91개를 단순 제거와 파생 변수화 두 방식으로 비교해, 공정값 관계가 남도록 `SUM`·`DELTA`를 적용했습니다.
 
 ```mermaid
 flowchart LR
-    A["대회 CSV"] --> B["결측/상수/중복 컬럼 정리"]
-    B --> C["공정 feature engineering"]
-    C --> D["불균형 처리"]
-    D --> E["Tree model 비교"]
-    E --> F["Threshold 검토"]
-    F --> G["Submission 생성"]
+    A["공식 대회 CSV"] --> B["공정 변수 정리"]
+    B --> C["SUM · DELTA feature"]
+    C --> D["Stratified 5-fold"]
+    D --> E["Sampling + Tree models"]
+    E --> F["Weighted blending"]
+    F --> G["Threshold 최적화 · 제출"]
 ```
 
-## 결과 근거
+## 결과
 
-이 저장소는 leaderboard claim보다 실험 판단 근거를 보여주는 데 초점을 둡니다.
+발표자료의 실험 결과입니다. 모든 검증 값은 Stratified 5-fold 평균 F1입니다.
 
-- 고차원 제조 feature 정리 전략
-- 소수 class F1을 중심으로 한 검증 방식
-- 모델별 precision/recall/F1 trade-off 검토
-- 대회 데이터 미포함 상태에서도 읽을 수 있는 notebook과 실험 요약
+| 모델 / 설정 | F1 |
+| --- | ---: |
+| RandomOverSampling + CatBoost | 0.196268 |
+| RandomUnderSampling 2배수 + CatBoost | 0.192071 |
+| RandomUnderSampling 3배수 + RandomForest | 0.196817 |
+| 가중 블렌딩 | 0.217305 |
+| 임계값 최적화 후 | **0.219159** |
 
-## 재현 가능성
+| 대회 점수 | Score |
+| --- | ---: |
+| Public | 0.219157 |
+| Private | **0.229658** |
+
+<p align="center">
+  <img src="assets/final_performance_slide.png" alt="실제 발표자료의 최종 성능 슬라이드" width="720" />
+</p>
+
+<p align="center"><sub>실제 발표자료의 최종 성능 슬라이드</sub></p>
+
+제출 기록상 초기 sample submission의 Public F1 0.149239에서, 상관관계 처리·블렌딩·후처리 실험을 거쳐 최종 Public 0.219157까지 개선했습니다. 공개 레퍼런스 노트북은 이 과정에서 선택한 `ROS CatBoost (0.5)`, `under-2 CatBoost (0.3)`, `under-3 RandomForest (0.2)`의 확률 가중 블렌딩과 CV 기반 threshold 탐색을 재현합니다. 대회 제출본의 개별 후처리까지는 포함하지 않습니다.
+
+## 내 기여
+
+- 완전 결측 278개·상수 35개·중복 26개를 포함한 노이즈성 공정 컬럼을 선별해 제거했습니다.
+- 상관관계가 높은 반복 공정 변수에서 `SUM`, `DELTA` 파생 변수를 설계했습니다.
+- 5-fold Stratified CV에서 sampling 비율과 tree 기반 모델을 비교하고, 가중 블렌딩과 threshold를 결정했습니다.
+- 제출 기록을 관리하며 Public F1 0.149239 → 0.219157 개선 과정을 검증했습니다.
+
+## 팀
+
+Notion 제출·실험 기록에서 확인한 팀원의 담당 실험입니다.
+
+| 구성원 | 담당 |
+| --- | --- |
+| 박민규 | 데이터 정리, 상관관계 기반 `SUM`·`DELTA` 설계, 범주형 인코딩, Stratified CV·블렌딩·제출 파이프라인 |
+| 승원 | 언더샘플링·CatBoost·파생 변수 및 블렌딩 실험 |
+| 준형 | `OK` 혼입/결측 변수 처리와 KNN·최빈값 대체 실험 |
+| 은재 | F1 임계값 최적화 실험 |
+
+## 실제 구현물
+
+| 자료 | 내용 |
+| --- | --- |
+| [최종 모델링 노트북](notebooks/final_modeling.ipynb) | 원본 실험의 핵심 전처리·샘플링·블렌딩을 재구성한 레퍼런스 |
+| [발표 자료](assets/presentation_lg_aimers_5th_online_hackathon.pptx) | 전처리·모델·검증 결과 원본 |
+| [실제 모델 출력](assets/model_output.png) | Decision Tree 시각화 원본 |
+| [최종 성능 슬라이드](assets/final_performance_slide.png) | 발표자료에서 추출한 실제 성능 결과 |
+
+## 실행
 
 ```bash
 pip install -r requirements.txt
+jupyter notebook notebooks/final_modeling.ipynb
 ```
 
-전체 실행에는 LG AImers/DACON에서 제공한 공식 CSV가 필요합니다. 공개 저장소에는 원본 대회 데이터와 제출 CSV를 포함하지 않습니다.
-
-## 공개/비공개 경계
-
-포함:
-
-- 공개 가능한 notebook과 실험 요약
-- 실행 환경과 재현 가이드
-- 모델링 의사결정 문서
-
-제외:
-
-- 원본 대회 데이터
-- 제출 파일, 개인 인증서, scratch notebook
-- 대용량 artifact, Drive archive, 개인정보 가능 자료
-
-## 한계
-
-- 대회 데이터가 없으면 end-to-end 재현은 불가능합니다.
-- 제조 현장 deployment, 모니터링, drift 대응은 포함하지 않았습니다.
-- class imbalance가 큰 문제이므로 단일 metric만으로 모델을 평가할 수 없습니다.
+공식 대회 CSV는 포함하지 않습니다. `data/train.csv`, `data/test.csv`, `data/submission.csv`를 준비하면 노트북의 공개 파이프라인을 실행할 수 있습니다. 대회 종료 후 공개된 코드이므로, 당시 제출 환경과 완전히 같은 결과를 보장하지는 않습니다.
