@@ -22,7 +22,7 @@
 | 문제 | 제조 공정·장비·검사 feature로 `Normal` / `AbNormal` 분류 |
 | 데이터 | Train 40,506행 · 464열 / Test 17,361행 |
 | 난점 | 소수 `AbNormal` class, 결측·상수·중복·`OK` 혼입 변수 |
-| 검증 기준 | 5-fold Stratified Cross Validation의 F1 score |
+| 검증 기준 | fold별 train 데이터에서 전처리 규칙을 학습하는 5-fold Stratified CV의 F1 score |
 | 결과 | Private score **0.229658** |
 
 ## 왜 이 문제를 풀었나
@@ -33,13 +33,13 @@
 
 | 단계 | 구현 | 판단 기준 |
 | --- | --- | --- |
-| 데이터 정리 | 완전 결측·상수·중복·오염 컬럼 제거 | 학습에 기여하지 않는 공정 변수를 먼저 축소 |
+| 데이터 정리 | 식별자·완전 결측·상수·중복·오염 컬럼 제거 | 학습에 기여하지 않는 공정 변수를 먼저 축소 |
 | feature engineering | 상관관계 공정 그룹의 `SUM`·`DELTA` 파생 변수 | 반복 공정 값의 관계를 보존 |
 | 검증 | 5-fold Stratified CV | 각 fold의 class 비율을 유지해 F1 비교 |
 | 불균형 대응 | Random over/under sampling | 소수 class 재현율과 F1의 trade-off 확인 |
 | 최종 예측 | CatBoost·RandomForest 가중 블렌딩, threshold 탐색 | 단일 모델보다 안정적인 F1 확보 |
 
-Notion 실험 기록 기준으로 완전 결측 278개, 상수 35개, 중복 26개 컬럼을 우선 제거했습니다. 이후 0.99 이상 상관관계 쌍 91개를 단순 제거와 파생 변수화 두 방식으로 비교해, 공정값 관계가 남도록 `SUM`·`DELTA`를 적용했습니다.
+Notion 실험 기록 기준으로 `Set ID`와 완전 결측 278개, 상수 35개, 중복 26개 컬럼을 우선 제거했습니다. 이후 0.99 이상 상관관계 쌍 91개를 단순 제거와 파생 변수화 두 방식으로 비교해, 공정값 관계가 남도록 `SUM`·`DELTA`를 적용했습니다. 공개 노트북은 CV의 각 fold에서 train 부분으로만 이 규칙을 정하고 validation에 적용합니다.
 
 ```mermaid
 flowchart LR
@@ -110,4 +110,4 @@ pip install -r requirements.txt
 jupyter notebook notebooks/final_modeling.ipynb
 ```
 
-공식 대회 CSV는 포함하지 않습니다. `data/train.csv`, `data/test.csv`, `data/submission.csv`를 준비하면 노트북의 공개 파이프라인을 실행할 수 있습니다. 대회 종료 후 공개된 코드이므로, 당시 제출 환경과 완전히 같은 결과를 보장하지는 않습니다.
+노트북 kernel metadata는 Python 3.11이며, `requirements.txt`는 고정 버전으로 제공합니다. 공식 대회 CSV는 포함하지 않습니다. `data/train.csv`, `data/test.csv`, `data/submission.csv`를 준비하면 노트북의 공개 파이프라인을 실행할 수 있습니다. 원본 데이터·개별 제출 후처리·당시 실행 환경은 공개하지 않아, 당시 리더보드 점수와 완전히 같은 결과를 보장하지는 않습니다.
