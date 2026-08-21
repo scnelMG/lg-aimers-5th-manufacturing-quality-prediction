@@ -32,20 +32,12 @@
 | 데이터 정리 | 식별자·완전 결측·상수·중복·오염 컬럼 제거 | 학습에 기여하지 않는 공정 변수를 먼저 축소 |
 | feature engineering | 상관관계 공정 그룹의 `SUM`·`DELTA` 파생 변수 | 반복 공정 값의 관계를 보존 |
 | 검증 | 5-fold Stratified CV | 각 fold의 class 비율을 유지해 F1 비교 |
-| 불균형 대응 | Random over/under sampling | 소수 class 재현율과 F1의 trade-off 확인 |
+| 불균형 대응 | Random over/under sampling | 소수 class 재현율과 F1 균형 비교 |
 | 최종 예측 | CatBoost·RandomForest 가중 블렌딩, threshold 탐색 | 단일 모델보다 안정적인 F1 확보 |
 
 Notion 실험 기록 기준으로 `Set ID`와 완전 결측 278개, 상수 35개, 중복 26개 컬럼을 우선 제거했습니다. 이후 0.99 이상 상관관계 쌍 91개를 단순 제거와 파생 변수화 두 방식으로 비교해, 공정값 관계가 남도록 `SUM`·`DELTA`를 적용했습니다. 공개 노트북은 CV의 각 fold에서 train 부분으로만 이 규칙을 정하고 validation에 적용합니다.
 
-```mermaid
-flowchart LR
-    A["공식 대회 CSV"] --> B["공정 변수 정리"]
-    B --> C["SUM · DELTA feature"]
-    C --> D["Stratified 5-fold"]
-    D --> E["Sampling + Tree models"]
-    E --> F["Weighted blending"]
-    F --> G["Threshold 최적화 · 제출"]
-```
+> **분석 흐름**: 공식 대회 CSV → 공정 변수 정리 → `SUM`·`DELTA` 파생 변수 → Stratified 5-fold → sampling·tree 모델 비교 → 가중 블렌딩 → threshold 최적화와 제출
 
 ## 결과
 
