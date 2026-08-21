@@ -111,3 +111,7 @@ jupyter notebook notebooks/final_modeling.ipynb
 ```
 
 노트북 kernel metadata는 Python 3.11이며, `requirements.txt`는 고정 버전으로 제공합니다. 공식 대회 CSV는 포함하지 않습니다. `data/train.csv`, `data/test.csv`, `data/submission.csv`를 준비하면 노트북의 공개 파이프라인을 실행할 수 있습니다. 원본 데이터·개별 제출 후처리·당시 실행 환경은 공개하지 않아, 당시 리더보드 점수와 완전히 같은 결과를 보장하지는 않습니다.
+
+## 이용 안내
+
+이 저장소는 포트폴리오 열람을 위해 공개합니다. 코드·문서·이미지의 재사용, 수정, 배포는 사전 문의가 필요합니다.
