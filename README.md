@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/model_output.png" alt="실제 Decision Tree 시각화" width="720" />
-</p>
-
 # LG AImers 5기 | 제조 품질 이상 탐지
 
 <p align="center">고차원 제조 공정 데이터에서 <code>AbNormal</code>을 놓치지 않기 위한 불균형 분류 실험</p>
@@ -76,7 +72,7 @@ flowchart LR
 
 제출 기록상 초기 sample submission의 Public F1 0.149239에서, 상관관계 처리·블렌딩·후처리 실험을 거쳐 최종 Public 0.219157까지 개선했습니다. 공개 레퍼런스 노트북은 이 과정에서 선택한 `ROS CatBoost (0.5)`, `under-2 CatBoost (0.3)`, `under-3 RandomForest (0.2)`의 확률 가중 블렌딩과 CV 기반 threshold 탐색을 재현합니다. 대회 제출본의 개별 후처리까지는 포함하지 않습니다.
 
-## 내 기여
+## 담당 범위
 
 - 완전 결측 278개·상수 35개·중복 26개를 포함한 노이즈성 공정 컬럼을 선별해 제거했습니다.
 - 상관관계가 높은 반복 공정 변수에서 `SUM`, `DELTA` 파생 변수를 설계했습니다.
