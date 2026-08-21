@@ -65,10 +65,10 @@ flowchart LR
 | Private | **0.229658** |
 
 <p align="center">
-  <img src="assets/final_performance_slide.png" alt="실제 발표자료의 최종 성능 슬라이드" width="720" />
+  <img src="assets/final_performance_summary.png" alt="실제 발표자료에서 성능 근거만 선별한 슬라이드" width="720" />
 </p>
 
-<p align="center"><sub>실제 발표자료의 최종 성능 슬라이드</sub></p>
+<p align="center"><sub>실제 발표자료에서 성능 근거만 선별했습니다.</sub></p>
 
 제출 기록상 초기 sample submission의 Public F1 0.149239에서, 상관관계 처리·블렌딩·후처리 실험을 거쳐 최종 Public 0.219157까지 개선했습니다. 공개 레퍼런스 노트북은 이 과정에서 선택한 `ROS CatBoost (0.5)`, `under-2 CatBoost (0.3)`, `under-3 RandomForest (0.2)`의 확률 가중 블렌딩과 CV 기반 threshold 탐색을 재현합니다. 대회 제출본의 개별 후처리까지는 포함하지 않습니다.
 
